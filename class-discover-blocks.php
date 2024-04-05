@@ -25,7 +25,6 @@ class Discover_Blocks {
 	 *
 	 * @param string $path Block path.
 	 * @param string $base_path Base path of the application.
-	 * @return array
 	 */
 	public static function within( string $path, string $base_path ): array {
 		return collect(
@@ -41,7 +40,6 @@ class Discover_Blocks {
 	 *
 	 * @param iterable $blocks Listener files.
 	 * @param string   $base_path Base path.
-	 * @return array
 	 */
 	protected static function get_blocks( $blocks, string $base_path ): array {
 		$found_blocks = [];
@@ -51,7 +49,7 @@ class Discover_Blocks {
 				$block = new ReflectionClass(
 					static::class_from_file( $block, $base_path ),
 				);
-			} catch ( ReflectionException $e ) {
+			} catch ( ReflectionException ) {
 				continue;
 			}
 
@@ -74,7 +72,6 @@ class Discover_Blocks {
 	 *
 	 * @param SplFileInfo $file File.
 	 * @param string      $base_path Base path.
-	 * @return string
 	 */
 	protected static function class_from_file( SplFileInfo $file, string $base_path ): string {
 		$class = trim(
@@ -84,10 +81,10 @@ class Discover_Blocks {
 			DIRECTORY_SEPARATOR,
 		);
 
-		$classname = str_replace(
+		return str_replace(
 			[
 				DIRECTORY_SEPARATOR,
-				ucfirst( basename( app()->get_app_path() ) ) . '\\',
+				ucfirst( basename( (string) app()->get_app_path() ) ) . '\\',
 			],
 			[
 				'\\',
@@ -95,7 +92,5 @@ class Discover_Blocks {
 			],
 			ucfirst( Str::replace_last( '.php', '', $class ) ),
 		);
-
-		return $classname;
 	}
 }
