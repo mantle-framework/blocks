@@ -31,31 +31,43 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * A custom override value for the block's Editor script location.
+	 *
+	 * @var string
 	 */
 	protected string $editor_script = '';
 
 	/**
 	 * A custom override value for the block's Editor script asset file location.
+	 *
+	 * @var string
 	 */
 	protected string $editor_script_asset = '';
 
 	/**
 	 * A custom override value for the block's Editor script dependencies.
+	 *
+	 * @var array
 	 */
 	protected array $editor_script_dependencies = [];
 
 	/**
 	 * A custom override value for the block's Editor script handle.
+	 *
+	 * @var string
 	 */
 	protected string $editor_script_handle = '';
 
 	/**
 	 * A custom override value for the block's Editor style location.
+	 *
+	 * @var string
 	 */
 	protected string $editor_style = '';
 
 	/**
 	 * A custom override value for the block's Editor style handle.
+	 *
+	 * @var string
 	 */
 	protected string $editor_style_handle = '';
 
@@ -63,42 +75,58 @@ abstract class Block implements Block_Contract {
 	 * The block's entry file without the extension.
 	 *
 	 * Generally this is going to be an index file (e.g. index.js, index.jsx)
+	 *
+	 * @var string
 	 */
 	protected string $entry_filename = 'index';
 
 	/**
 	 * A custom override value for the block's Frontend script location.
+	 *
+	 * @var string
 	 */
 	protected string $frontend_script = '';
 
 	/**
 	 * A custom override value for the block's Frontend script handle.
+	 *
+	 * @var string
 	 */
 	protected string $frontend_script_handle = '';
 
 	/**
 	 * A custom override value for the block's Frontend style location.
+	 *
+	 * @var string
 	 */
 	protected string $frontend_style = '';
 
 	/**
 	 * A custom override value for the block's Frontend style handle.
+	 *
+	 * @var string
 	 */
 	protected string $frontend_style_handle = '';
 
 	/**
 	 * Whether the block is a dynamic block or not.
 	 * Default is true.
+	 *
+	 * @var bool
 	 */
 	protected bool $is_dynamic = true;
 
 	/**
 	 * The name of the block.
+	 *
+	 * @var string
 	 */
 	protected string $name = '';
 
 	/**
 	 * The namespace of the block.
+	 *
+	 * @var string
 	 */
 	protected string $namespace = '';
 
@@ -114,6 +142,8 @@ abstract class Block implements Block_Contract {
 	/**
 	 * Executed by the Block Service Provider to handle registering the block
 	 * with Mantle and WordPress.
+	 *
+	 * @return void
 	 */
 	public function register(): void {
 
@@ -123,7 +153,7 @@ abstract class Block implements Block_Contract {
 
 		add_action(
 			'enqueue_block_editor_assets',
-			function (): void {
+			function() {
 				$this->register_editor_assets();
 				$this->register_frontend_assets();
 			}
@@ -131,12 +161,12 @@ abstract class Block implements Block_Contract {
 
 		add_action(
 			'init',
-			function (): void {
+			function() {
 				$args = wp_parse_args(
 					[
 						'attributes'      => $this->get_attributes(),
 						'editor_script'   => $this->get_editor_script_handle(),
-						'render_callback' => $this->is_dynamic ? fn ( $attributes, $content ) => $this->render( $attributes, $content ) : null,
+						'render_callback' => $this->is_dynamic ? fn( $attributes, $content ) => $this->render( $attributes, $content ) : null,
 						'editor_style'    => $this->get_editor_style_handle(),
 					]
 				);
@@ -154,11 +184,12 @@ abstract class Block implements Block_Contract {
 	 * Whether or not a view was found for the block.
 	 *
 	 * @param string $name The name of the view to attempt to locate.
+	 * @return bool
 	 */
 	protected function block_view_exists( $name ): bool {
 		try {
 			View_Loader::find( $name );
-		} catch ( InvalidArgumentException ) {
+		} catch ( InvalidArgumentException $e ) {
 			return false;
 		}
 
@@ -169,6 +200,7 @@ abstract class Block implements Block_Contract {
 	 * A helper function for formatting script handles correctly.
 	 *
 	 * @param string $type The type of handle being formatted.
+	 * @return string
 	 */
 	protected function format_handle( string $type ): string {
 		$name = Str::replace( '/', '-', $this->get_block_name() );
@@ -177,6 +209,8 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * Returns the blocks attributes array.
+	 *
+	 * @return array
 	 */
 	protected function get_attributes(): array {
 		return $this->attributes;
@@ -184,6 +218,8 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * Get the block assets object from the block assets JSON file.
+	 *
+	 * @return object
 	 */
 	protected function get_block_assets(): object {
 		$root = \trailingslashit( MANTLE_BASE_DIR ) . \trailingslashit( app( 'config' )->get( 'assets.path' ) );
@@ -195,8 +231,8 @@ abstract class Block implements Block_Contract {
 
 		try {
 			$assets = $disk->get( "blocks/{$this->name}/{$this->entry_filename}.asset.json" );
-			$assets = \json_decode( (string) $assets );
-		} catch ( Throwable ) {
+			$assets = \json_decode( $assets );
+		} catch ( Throwable $e ) {
 			return new \stdClass();
 		}
 
@@ -214,6 +250,8 @@ abstract class Block implements Block_Contract {
 	 * Gets the block name with the proper namespace and block name.
 	 * e.g. `namespace/name` if a namespace is defined, or simply
 	 * `name` if a namespace is not defined.
+	 *
+	 * @return string
 	 */
 	protected function get_block_name(): string {
 		return sprintf( '%1$s/%2$s', $this->get_namespace(), $this->name );
@@ -221,6 +259,8 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * Get the editor scripts array of dependencies.
+	 *
+	 * @return array
 	 */
 	protected function get_editor_script_dependencies(): array {
 		if (
@@ -241,6 +281,8 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * Get the version value from the Editor script's asset file.
+	 *
+	 * @return string
 	 */
 	protected function get_editor_script_version(): string {
 		if (
@@ -258,6 +300,8 @@ abstract class Block implements Block_Contract {
 	/**
 	 * Get the editor script handle. Use override if provided, otherwise generate
 	 * a handle.
+	 *
+	 * @return string
 	 */
 	protected function get_editor_script_handle(): string {
 		return $this->editor_script_handle ?: $this->format_handle( 'editor-script' );
@@ -267,6 +311,8 @@ abstract class Block implements Block_Contract {
 	/**
 	 * Get the editor style handle. Use override if provided, otherwise generate
 	 * a handle.
+	 *
+	 * @return string
 	 */
 	protected function get_editor_style_handle(): string {
 		return $this->editor_style_handle ?: $this->format_handle( 'editor-style' );
@@ -275,6 +321,8 @@ abstract class Block implements Block_Contract {
 	/**
 	 * Get the frontend script handle. Use override if provided, otherwise generate
 	 * a handle.
+	 *
+	 * @return string
 	 */
 	protected function get_frontend_script_handle(): string {
 		return $this->frontend_script_handle ?: $this->format_handle( 'frontend-script' );
@@ -283,6 +331,8 @@ abstract class Block implements Block_Contract {
 	/**
 	 * Get the frontend style handle. Use override if provided, otherwise generate
 	 * a handle.
+	 *
+	 * @return string
 	 */
 	protected function get_frontend_style_handle(): string {
 		return $this->frontend_style_handle ?: $this->format_handle( 'frontend-style' );
@@ -290,6 +340,8 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * Return the namespace for the block. Generate one if necessary.
+	 *
+	 * @return string
 	 */
 	protected function get_namespace(): string {
 		return $this->namespace ?: Str::lower( app( 'config' )->get( 'app.namespace', 'app' ) );
@@ -297,6 +349,8 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * Handle registering the Block Editor assets.
+	 *
+	 * @return void
 	 */
 	protected function register_editor_assets(): void {
 		asset()
@@ -317,6 +371,8 @@ abstract class Block implements Block_Contract {
 
 	/**
 	 * Handle registering the block's frontend assets.
+	 *
+	 * @return void
 	 */
 	protected function register_frontend_assets(): void {
 		if ( ! empty( $this->frontend_script ) ) {
